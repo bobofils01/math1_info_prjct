@@ -14,26 +14,22 @@ def itemRank(A: np.matrix , alpha: float, v: np.array, m: bool): #−> np.array
     PexpT = get_probability_transition_matrix(A).T
     di = initialize_vector(v)
     if m:
-        return  item_rank_recursively(PexpT, alpha, di, v)
-    #item_rank_inversion_mat(A, alpha, v)
+        return (item_rank_recursively(PexpT, alpha, di, di), item_rank_inversion_mat(PexpT, alpha, di))
     return []
 
 
-def item_rank_recursively(PexpT: np.matrix , alpha: float, xi,  v: np.matrix ):
-    print("fyn")
-    new_vect = alpha * PexpT * xi + (1 - alpha) * v
-    if np.sum(np.abs(xi - new_vect)) <= 0.00001:
-        return new_vect
-    return item_rank_recursively(PexpT, alpha, new_vect, v)
+def item_rank_recursively(PexpT: np.matrix , alpha: float, xi,  v: np.matrix):
+    newVect = alpha * PexpT * xi + (1 - alpha) * v
+    if np.sum(np.abs(xi - newVect)) <= 0.00000001:
+        return newVect
+    return item_rank_recursively(PexpT, alpha, newVect, v)
 
 
-def item_rank_inversion_mat(A: np.matrix , alpha: float, v: np.array):
+def item_rank_inversion_mat(PexpT: np.matrix , alpha: float, v: np.array):
     #= (1−α)(I−αP^T)^−1*v u
-    P = get_probability_transition_matrix(A)
-    I = np.identity(A.__len__())
-    v = initialize_vector(v)
-    res = (1 - alpha) * (np.linalg.inv(I - alpha*P.transpose())) * v
-    print("res", res)
+    I = np.identity(PexpT.__len__())
+    res = (1 - alpha) * (np.linalg.inv(I - alpha*PexpT)) * v
+    print("resitem_rank_inversion_mat", res)
     return res
 
 
@@ -68,6 +64,6 @@ if __name__ == '__main__':
     personalisation_vector = np.array([1, 0, 0, 0, 1, 0, 1, 0, 0, 1])
 
     #personalisation_vector = initialize_vector(personalisation_vector)
-    print(itemRank(matrix, ALPHA, personalisation_vector, True))
-
+    print("personalisation_vector", personalisation_vector)
+    print("resFinal", itemRank(matrix, ALPHA, personalisation_vector, True))
     #item_rank_inversion_mat(matrix, personalisation_vector)
