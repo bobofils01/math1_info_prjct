@@ -2,38 +2,58 @@ import numpy as np
 
 
 def initialize_vector(pers_vector):
-    return np.matrix(pers_vector / pers_vector.sum()).T
+    """
 
-def calculation_vector():
-    a = initialize_vector(4)
-    a[3] = 4
-    print(a)
+    :param pers_vector: Le vecteur de personnalisation
+    :return: Le vecteur de personnalisation normalisé
+    """
+    return np.matrix(pers_vector / pers_vector.sum()).T
 
 
 def itemRank(A: np.matrix , alpha: float, v: np.array, m: bool): #−> np.array
-    PexpT = get_probability_transition_matrix(A).T
+    PTransposed = get_probability_transition_matrix(A).T
     di = initialize_vector(v)
     if m:
-        return (item_rank_recursively(PexpT, alpha, di, di), item_rank_inversion_mat(PexpT, alpha, di))
+        return item_rank_recursively(PTransposed, alpha, di, di), item_rank_inversion_mat(PTransposed, alpha, di)
     return []
 
 
-def item_rank_recursively(PexpT: np.matrix , alpha: float, xi,  v: np.matrix):
-    newVect = alpha * PexpT * xi + (1 - alpha) * v
+def item_rank_recursively(PTransposed: np.matrix , alpha: float, xi,  v: np.matrix):
+    """
+
+    :param PTransposed: La transposée de la matrice de probabilités de transition
+    :param alpha: Le paramètre de téléportation
+    :param xi: Le vecteur de page rank actuel
+    :param v: Le vecteur de personnalisation normalisé
+    :return: Le vecteur de page rank
+    """
+    newVect = alpha * PTransposed * xi + (1 - alpha) * v
     if np.sum(np.abs(xi - newVect)) <= 0.00000001:
         return newVect
-    return item_rank_recursively(PexpT, alpha, newVect, v)
+    return item_rank_recursively(PTransposed, alpha, newVect, v)
 
 
-def item_rank_inversion_mat(PexpT: np.matrix , alpha: float, v: np.array):
-    #= (1−α)(I−αP^T)^−1*v u
-    I = np.identity(PexpT.__len__())
-    res = (1 - alpha) * (np.linalg.inv(I - alpha*PexpT)) * v
-    print("resitem_rank_inversion_mat", res)
+def item_rank_inversion_mat(PTransposed: np.matrix , alpha: float, v: np.array):
+    """
+
+    :param PTransposed: La transposée de la matrice de probabilités de transition
+    :param alpha: Le paramètre de téléportation
+    :param v: Le vecteur de personnalisation normalisé
+    :return: Le vecteur de page rank
+    """
+    I = np.identity(PTransposed.__len__())
+    #     (1−α)(I−αP^T)^−1*v u
+    res = (1 - alpha) * (np.linalg.inv(I - alpha*PTransposed)) * v
+    print("res item_rank_inversion_mat", res)
     return res
 
 
 def get_probability_transition_matrix(A: np.matrix):
+    """
+
+    :param A: La matrice de base
+    :return: La matrice de probabilités de transition
+    """
     res = []
     for i in range(10):
         res.append([0] * 10)
@@ -44,8 +64,7 @@ def get_probability_transition_matrix(A: np.matrix):
 
 
 if __name__ == '__main__':
-    #print("Item Rank", initialize_vector(3))
-    #calculation_vector()
+
     ALPHA = 0.85
     matrix = np.matrix([
         # 1  2  3  4  5  6  7  8  9  10
