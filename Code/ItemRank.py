@@ -17,8 +17,8 @@ def itemRank(A: np.matrix , alpha: float, v: np.array, m: bool): #−> np.array
     PTransposed = get_probability_transition_matrix(A).T
     di = initialize_vector(v)
     if m:
-        return item_rank_recursively(PTransposed, alpha, di, di), item_rank_inversion_mat(PTransposed, alpha, di)
-    return []
+        return item_rank_recursively(PTransposed, alpha, di, di)
+    return item_rank_inversion_mat(PTransposed, alpha, di)
 
 
 def item_rank_recursively(PTransposed: np.matrix , alpha: float, xi,  v: np.matrix):
@@ -32,7 +32,6 @@ def item_rank_recursively(PTransposed: np.matrix , alpha: float, xi,  v: np.matr
     """
     newVect = alpha * PTransposed * xi + (1 - alpha) * v
     if np.sum(np.abs(xi - newVect)) <= 0.00000001:
-        print("item_rank_recursively", newVect)
         return newVect
     #print("newVect", newVect)
     return item_rank_recursively(PTransposed, alpha, newVect, v)
@@ -49,7 +48,6 @@ def item_rank_inversion_mat(PTransposed: np.matrix , alpha: float, v: np.array):
     I = np.identity(PTransposed.__len__())
     #     (1−α)(I−αP^T)^−1*v u
     res = (1 - alpha) * (np.linalg.inv(I - alpha*PTransposed)) * v
-    print("res item_rank_inversion_mat", res)
     return res
 
 
@@ -71,7 +69,6 @@ def get_probability_transition_matrix(A: np.matrix):
 def read_csv(filename):
     res = []
     file = path.join(path.join(path.join(path.dirname(__file__), '..'), 'Code'), filename)
-    print("file", file)
     with open(file, 'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
@@ -82,7 +79,7 @@ def read_csv(filename):
 
 if __name__ == '__main__':
 
-    ALPHA = 0.85
+    ALPHA = 0.15
     """
     matrix = np.matrix([
         # 1  2  3  4  5  6  7  8  9  10
@@ -105,12 +102,15 @@ if __name__ == '__main__':
     #print("resFinal", itemRank(matrix, ALPHA, personalisation_vector, True))
     #item_rank_inversion_mat(matrix, personalisation_vector)
     #itemRank(matrix, ALPHA, personalisation_vector, True)
-    print("final",read_csv("Personnalisation_Student30.csv"))
-    print("final", read_csv("matrixBase.csv"))
     personalisation_vector = np.array(read_csv("Personnalisation_Student30.csv")[0])
     print("pers", personalisation_vector)
     matrix = np.matrix(read_csv("matrixBase.csv"))
     print("mat", matrix)
-    itemRank(matrix, ALPHA, personalisation_vector, True)
+
+    recursively = itemRank(matrix, ALPHA, personalisation_vector, True)
+    print("item_rank_recursively\n", recursively)
+
+    inversion = itemRank(matrix, ALPHA, personalisation_vector, False)
+    print("item_rank_inversion_mat\n", inversion)
 
     #print(get_probability_transition_matrix(matrix).T * initialize_vector(personalisation_vector))
