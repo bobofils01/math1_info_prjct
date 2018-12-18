@@ -43,7 +43,7 @@ def item_rank_recursively(PTransposed: np.matrix , alpha: float, xi,  v: np.matr
     :return: Le vecteur de page rank
     """
     newVect = alpha * PTransposed * xi + (1 - alpha) * v
-    if np.sum(np.abs(xi - newVect)) <= 0.00001:
+    if np.sum(np.abs(xi - newVect)) <= PRECISION:
         return newVect
     return item_rank_recursively(PTransposed, alpha, newVect, v)
 
@@ -107,10 +107,12 @@ def main():
 
 if __name__ == '__main__':
     """
-    La valeur d'alpha et les noms des fichiers csv peuvent être changés ici.
+    La valeur d'alpha, la valeur de la précision du vecteur de score calculé par récurrence 
+    et les noms des fichiers csv peuvent être changés ici.
     """
     ALPHA = 0.15
     NOM_DU_FICHIER_CSV_MATRICE_ADJACENCE = "matrixBase.csv"
     NOM_DU_FICHIER_CSV_VECTEUR_PERSO = "Personnalisation_Student30.csv"
+    PRECISION = 0.00001
 
     main()
