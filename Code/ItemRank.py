@@ -6,7 +6,7 @@ import csv
 
 def initialize_vector(pers_vector):
     """
-
+    Normalise un vecteur
     :param pers_vector: Le vecteur de personnalisation
     :return: Le vecteur de personnalisation normalisé
     """
@@ -14,16 +14,28 @@ def initialize_vector(pers_vector):
 
 
 def itemRank(A: np.matrix , alpha: float, v: np.array, m: bool): #−> np.array
+    """
+    Calcul du vecteur de score récursivement ou par inversion matricielle (en fonction de m)
+    :param A: La matrice d'adjacence
+    :param alpha: Le paramètre de téléportation
+    :param v: Le vecteur de personnalisation d’un utilisateur
+    :param m: Une variable booléenne contenant true si le score doit être obtenu par récurrence et false s’il doit être
+    obtenu par inversion matricielle.
+    :return: Un vecteur contenant les scores d’importance des noeuds ordonnés dans le même ordre que la matrice
+    d’adjacence
+    """
     PTransposed = get_probability_transition_matrix(A).T
     di = initialize_vector(v)
     if m:
-        return item_rank_recursively(PTransposed, alpha, di, di)
-    return item_rank_inversion_mat(PTransposed, alpha, di)
+        res = item_rank_recursively(PTransposed, alpha, di, di)
+    else:
+        res = item_rank_inversion_mat(PTransposed, alpha, di)
+    return np.squeeze(np.asarray(res))
 
 
 def item_rank_recursively(PTransposed: np.matrix , alpha: float, xi,  v: np.matrix):
     """
-
+    Calcul du vecteur de score récursivement
     :param PTransposed: La transposée de la matrice de probabilités de transition
     :param alpha: Le paramètre de téléportation
     :param xi: Le vecteur de page rank actuel
@@ -31,29 +43,27 @@ def item_rank_recursively(PTransposed: np.matrix , alpha: float, xi,  v: np.matr
     :return: Le vecteur de page rank
     """
     newVect = alpha * PTransposed * xi + (1 - alpha) * v
-    if np.sum(np.abs(xi - newVect)) <= 0.00000001:
+    if np.sum(np.abs(xi - newVect)) <= 0.00001:
         return newVect
-    #print("newVect", newVect)
     return item_rank_recursively(PTransposed, alpha, newVect, v)
 
 
 def item_rank_inversion_mat(PTransposed: np.matrix , alpha: float, v: np.array):
     """
-
+    Calcul du vecteur de score par inversion matricielle
     :param PTransposed: La transposée de la matrice de probabilités de transition
     :param alpha: Le paramètre de téléportation
     :param v: Le vecteur de personnalisation normalisé
     :return: Le vecteur de page rank
     """
     I = np.identity(PTransposed.__len__())
-    #     (1−α)(I−αP^T)^−1*v u
     res = (1 - alpha) * (np.linalg.inv(I - alpha*PTransposed)) * v
     return res
 
 
 def get_probability_transition_matrix(A: np.matrix):
     """
-
+    Calcule la matrice de probabilité de transition à partir de la matrice d'adjacence
     :param A: La matrice de base
     :return: La matrice de probabilités de transition
     """
@@ -67,6 +77,11 @@ def get_probability_transition_matrix(A: np.matrix):
 
 
 def read_csv(filename):
+    """
+    Lit un fichier csv pour retourner son contenu dans un tableau
+    :param filename: Le nom du fichier devant être lu
+    :return: Le contenu du fichier dans un tableau
+    """
     res = []
     file = path.join(path.join(path.join(path.dirname(__file__), '..'), 'Code'), filename)
     with open(file, 'r') as csvfile:
@@ -74,43 +89,28 @@ def read_csv(filename):
         for row in spamreader:
             res.append([float(elem) for elem in row])
     return res
-    #return [float(elem) for elem in res]
+
+
+def main():
+    """
+    Fonction principale dans laquelle les fonctions sont appelée
+    """
+    personalisation_vector = np.array(read_csv(NOM_DU_FICHIER_CSV_VECTEUR_PERSO)[0])
+    matrix = np.matrix(read_csv(NOM_DU_FICHIER_CSV_MATRICE_ADJACENCE))
+
+    recursively = itemRank(matrix, ALPHA, personalisation_vector, True)
+    print("item rank par récursivité\n", recursively)
+
+    inversion = itemRank(matrix, ALPHA, personalisation_vector, False)
+    print("item rank par inversion matricielle\n", inversion)
 
 
 if __name__ == '__main__':
-
+    """
+    La valeur d'alpha et les noms des fichiers csv peuvent être changés ici.
+    """
     ALPHA = 0.15
-    """
-    matrix = np.matrix([
-        # 1  2  3  4  5  6  7  8  9  10
-        [0, 1, 1, 0, 1, 0, 1, 1, 1, 1],  # 1
-        [1, 0, 0, 1, 1, 0, 1, 1, 0, 0],  # 2
-        [1, 0, 0, 0, 1, 1, 1, 1, 1, 0],  # 3
-        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0],  # 4
-        [1, 1, 1, 1, 0, 0, 1, 1, 1, 0],  # 5
-        [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],  # 6
-        [1, 1, 1, 0, 1, 0, 0, 0, 1, 1],  # 7
-        [1, 1, 1, 0, 1, 1, 0, 0, 1, 0],  # 8
-        [1, 0, 1, 0, 1, 0, 1, 1, 0, 0],  # 9
-        [1, 0, 0, 0, 0, 0, 1, 0, 0, 0]  # 10
-    ])
+    NOM_DU_FICHIER_CSV_MATRICE_ADJACENCE = "matrixBase.csv"
+    NOM_DU_FICHIER_CSV_VECTEUR_PERSO = "Personnalisation_Student30.csv"
 
-    personalisation_vector = np.array([1, 0, 0, 0, 1, 0, 1, 0, 0, 1])
-    """
-    #personalisation_vector = initialize_vector(personalisation_vector)
-    #print("personalisation_vector", personalisation_vector)
-    #print("resFinal", itemRank(matrix, ALPHA, personalisation_vector, True))
-    #item_rank_inversion_mat(matrix, personalisation_vector)
-    #itemRank(matrix, ALPHA, personalisation_vector, True)
-    personalisation_vector = np.array(read_csv("Personnalisation_Student30.csv")[0])
-    print("pers", personalisation_vector)
-    matrix = np.matrix(read_csv("matrixBase.csv"))
-    print("mat", matrix)
-
-    recursively = itemRank(matrix, ALPHA, personalisation_vector, True)
-    print("item_rank_recursively\n", recursively)
-
-    inversion = itemRank(matrix, ALPHA, personalisation_vector, False)
-    print("item_rank_inversion_mat\n", inversion)
-
-    #print(get_probability_transition_matrix(matrix).T * initialize_vector(personalisation_vector))
+    main()
