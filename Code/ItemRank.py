@@ -83,7 +83,7 @@ def read_csv(filename):
     :return: Le contenu du fichier dans un tableau
     """
     res = []
-    file = path.join(path.join(path.join(path.dirname(__file__), '..'), 'Code'), filename)
+    file = path.join(path.join(path.dirname(__file__), '.'), filename)
     with open(file, 'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
